@@ -1,0 +1,3 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1038
+
+grep/find utility wholly contained in Vim.  Commands implemented specifically to aid the editing task, not just find pattern matches.  Vimgrep() provides grep utility without an external grep type program.  It includes :help documentation grep-ing, selective or mass editing of files with matches, and display of output to command line or a named buffer.  Vimfind() provides find utility without an external find type program and offers same selective/mass editing as Vimgrep(). See doc directory in package for various documentation file formats and select one for more information.
