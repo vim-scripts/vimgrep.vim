@@ -1,4 +1,4 @@
-Vimgrep version 2.2
+Vimgrep version 3.0
 Page 1 of 7
 
 
@@ -22,33 +22,36 @@ Page 1 of 7
  a quoted command argument is taken as a literal quote.
  The  syntax  for the function will be given here, command syntax  is  the
  same except as noted above.
-   let
-   result=Vimgrep(‘srchpat’,’file’[,MC,FNonly,terse,doSubs,’fpat’,’mpat’
-   ])
- Only  the  first 2 arguments are required, the balance are optional,  but
- positionally required (i.e., to specify terse, you must also  specify  MC
- and FNonly).  Let’s take the arguments one by one.
+   let reslt=Vimgrep(‘srchpat’,’file’
+          [,’-M’][,’-F’][,’-t’][,’-d’][,’-f’,’<pat>’][,’-m’,’<pat>’])
+ Only  the first 2 arguments are required, the balance are optional switch
+ arguments.   Optional switches can be specified in any  order,  but  only
+ once  each (in case of multiple use, last option occurrence specified  is
+ used).   Optional  switches must also come after the required  arguments.
+ Let’s take the arguments one by one.
 
    srchpat string or regex to search for in file(s).
    file    file(s) to search.  Can be a single file, a comma separated
            list, a newline separated list, regex, or any combination.
-   MC      0 or 1 as Boolean for case matching.  Default is 0, that is,
+   -M      toggles case matching from default.  Default is 0, that is,
            case matching is not required (i.e., ignored).
-   FNonly  0 or 1 Boolean.  1 returns names of files containing matches
-           only.
-   terse   0 or 1 Boolean.  When 1 do not return messages that identify
-           files that are directories, files that are empty, files that
-           are non text, and files in which the pattern was not found.
-   doSubs  0 or 1 Boolean.  1 == search in subdirectories also.
-   fpat    specific file patterns to search for, e.g. ‘\w*\.vim\>’ or
-           ‘\w*\.txt\>’.  Use ‘’ or “” for positional placeholder.
-   mpat    specific file patterns to skip, e.g. ‘syntax\|lang’.
+   -F      toggles file name only return.  Default is 0, return matches.
+   -t      toggles terse return.  Default is 0, return messages that
+           identify files that are directories, files that are empty,
+           files that are non-text, and files in which the pattern was
+           not found.
+   -d      toggles subdirectory searching.  Default is not to search
+           subdirectories.
+   -f      next argument is a file pattern to search for.
+   -m      next argument is a file pattern to skip.
+   <pat>   pattern argument following –f or -m, e.g. ‘syntax\|lang’ or
+           ‘\w*\.vim\>’ or ‘\w*\.txt\>’.
 
    Returns line number and line text where srchpat was found or messages
-           that identify result on specific file, unless terse is
-           specified, then only successful searches are returned.  If
-           FNonly is specified, only the names of files successfully
-           searched are returned.
+           that identify result on specific file, unless -t is toggled
+           from default, then only successful searches are returned.  If
+           -F is toggled from default, only the names of files
+           successfully searched are returned.
 
  You can capture the output in various ways.  The most common would be  to
  assign  the function return within a script to a variable.  Alternatively
@@ -94,13 +97,13 @@ VimgrepToBuf        ToBufVimgrep()         2         6
  searching.
  The  ‘ToBuf’ type requests a file name for a buffer and places the output
  from Vimgrep into that named buffer.
- The  ‘Edit’  type  uses FNonly by default and opens successfully  grep-ed
+ The ‘Edit’ type sets file name return only and opens successfully grep-ed
  files into buffers for editing.
  The  ‘Help’  type  uses  doc/*.txt files for  searching  and  also  opens
  successfully  grep-ed  files  into buffers,  as  with  the  ‘Edit’  type.
  However,  options  are  set to make the files behave  as  normal  ‘:help’
  files.
- The  ‘List’  type uses FNonly by default and generates a  list  of  files
+ The  ‘List’ type sets file name return only and generates a list of files
  containing pattern matches.  This list is then opened in a listing buffer
  (readonly/nomodifiable) and the ‘o’ key is mapped to open the file in the
  line the cursor is on.
@@ -120,121 +123,112 @@ VimgrepToBuf        ToBufVimgrep()         2         6
      being output while 2 specifies error messages only.  Setting  to  1
      will cause error and warning messages to be output.
    
-   Vimfind file fpat[ MC doSubs mpat]
-   let result=Vimfind(‘file’,’fpat’[,MC,doSubs,’mpat’])
+   Vimfind file fpat[ -M][ –d][ –m <pat>]
+   let result=Vimfind(‘file’,’fpat’[,-M][,-d][,’-m’,’<pat>’])
      Typically, file will be a directory name, but it can be a  wildcard
      specification.   fpat  can be a placeholder  (‘’  or  “”)  or  not.
-     Optional  arguments are as used in Vimgrep.  Vimfind operates  with
-     FNonly set to true (1).
+     Optional arguments are as used in Vimgrep.  Vimfind sets file  name
+     only return.
    Return List of files from file hierarchy that match fpat.
    Example:
    Vimfind $VIMRUNTIME \w*\.vim\>
      Finds all *.vim files in the $VIMRUNTIME directory.
    Example:
-   let
-   result=Vimfind($VIMRUNTIME,’\w*\.vim\>’,0,1,’bitmaps\|keymap\|tutor\|
-   lang’)
+   let reslt=
+     \Vimfind($VIMRUNTIME,’\w*\.vim\>’,’-F’,’-
+     f’,’bitmaps\|keymap\|tutor\|lang’)
      Finds  all  *.vim files in the $VIMRUNTIME directory  and  all  its
      subdirectories  excepting  any  fully  qualified  paths  containing
      ‘bitmaps’, ‘keymap’, ‘tutor’, or ‘lang'.
    
-   VimfindList file fpat[ MC doSubs mpat]
-   call ListVimfind(‘file’,’fpat’[,MC,doSubs,’mpat’])
+   VimfindList file fpat[ -M][ -d][ –m <pat>]
+   call ListVimfind(‘file’,’fpat’[,’-M’][,’-d’][,’-m’,’<pat>’])
      file and fpat are as with Vimfind.
    Return Opens  a listing file of files that match fpat.  ‘o’ is mapped
           to  open  the file listed in the cursor line.  Either  Example
           from  Vimfind  above  would produce such a  listing  an  allow
           selective opening of the found files.
 
-   VimfindToBuf file fpat[ MC doSubs mpat]
-   call ToBufVimfind(‘file’,’fpat’[,MC,doSubs,’mpat’])
+   VimfindToBuf file fpat[ MC][ doSubs][ mpat]
+   call ToBufVimfind(‘file’,’fpat’[,’-M’][,’-d’][,’-m’,’<pat>’])
      file and fpat are as with Vimfind.
    Return Opens  a  named buffer of files that match fpat.  The user  is
           prompted for a file name either in a browser in gvim or on the
           command line in vim.  Either Example from Vimfind above  would
           produce a buffer of file names to view and/or edit.
    
-   Vimgrep srchpat file[ MC FNonly terse doSubs fpat mpat]
-   let
-   result=Vimgrep(‘srchpat’,‘file’[,MC,FNonly,terse,doSubs,’fpat’,’mpat’
-   ])
+   Vimgrep srchpat file[ -M][ -F][ -t][ -d][ –f <pat>][ -m <pat>]
+   let reslt=
+     Vimgrep(‘srchpat’,‘file’
+          [,’-M’][,’-F’][,’-t’][,’-d’][,’-f’,’<pat>’][,’-m’,’<pat>’])
      file  can be any file, wildcards, directory, or list (comma  and/or
      newline  separated),  or any combination of  these.   The  resolved
-     argument files are searched for instances of srchpat.  MC (0 or  1)
-     indicates matching case.  FNonly (0 or 1) indicates whether or  not
-     to return only file names.  terse (0 or 1) indicates whether or not
-     to  output  information on non-matches.  doSubs (0 or 1)  indicates
-     whether  or not to recursively check directories.  fpat is  a  file
-     pattern  to match for inclusion.  mpat is a file pattern  to  match
-     for exclusion (‘minus pattern’).
+     argument  files are searched for instances of srchpat.   See  above
+     for complete argument information.
    Return Information  on matches to srchpat found in resolved  argument
           file.   Type  and  amount of information depends  on  optional
           arguments specified.
    Example:
-   Vimgrep \<match\s*( $VIMRUNTIME 1 0 1 1 \h\w*\.vim\>
-   bitmaps\|colors\|keymap\|lang
-     Finds  all  occurrences of calls to the function ‘match’ (MC=1)  in
-     *.vim  files  in  the $VIMRUNTIME directory and its subdirectories.
-     Information  on  non-matches  is not indicated  (terse=1)  and  the
-     subdirectories ‘bitmaps’, ‘colors’, ‘keymap’, and ‘lang’  will  not
-     be checked.
+   Vimgrep \<match\s*( $VIMRUNTIME -M -t -d –f \h\w*\.vim\>
+      \-m bitmaps\|colors\|keymap\|lang
+     Finds  all  occurrences of calls to the function  ‘match’  (-M)  in
+     *.vim   (-f)   files   in  the  $VIMRUNTIME   directory   and   its
+     subdirectories (-d).  Information on non-matches is not indicated (-
+     t) and the subdirectories ‘bitmaps’, ‘colors’, ‘keymap’, and ‘lang’
+     will not be checked (-m).
    Example:
-   let
-   result=Vimgrep(‘\h\w*\indent\w*\s*(‘,$VIMRUNTIME.’/indent/*.vim’,0,0,
-   1)
+   let reslt=Vimgrep(‘\h\w*\indent\w*\s*(‘,$VIMRUNTIME.’/indent/*.vim’,’-
+   t’)
      Searches  all  *.vim files in the $VIMRUNTIME indent directory  for
      occurrences  of any function reference containing ‘indent’  in  its
-     name (case ignored, MC=0).  Information on non-matches will not  be
-     returned (terse=1).
+     name.  Information on non-matches will not be returned (-t).
  
-   VimgrepBufs srchpat[ MC]
-   let result=BufsVimgrep(‘srchpat’[,MC])
+   VimgrepBufs srchpat[ -M]
+   let result=BufsVimgrep(‘srchpat’[,’-M’])
      Searches listed buffers for srchpat.
    Return Filenames and lines that match srchpat in listed buffers.
 
-   VimgrepBufsToBuf srchpat[ MC]
-   call BufsToBufVimgrep(‘srchpat’[,MC])
+   VimgrepBufsToBuf srchpat[ -M]
+   call BufsToBufVimgrep(‘srchpat’[,’-M’])
      Searches listed buffers for srchpat.
    Return Opens a named buffer of filenames and lines that match srchpat
           in  listed  buffers.  The user is prompted  for  a  file  name
           either in a browser in gvim or on the command line in vim.
    
-   VimgrepEdit srchpat file[ MC doSubs fpat mpat]
-   call EditVimgrep(‘srchpat’,‘file’[,MC,doSubs,’fpat’,’mpat’])
+   VimgrepEdit srchpat file[ -M][ -d][ –f <pat>][ -m <pat>]
+   call EditVimgrep(‘srchpat’,‘file’[,’-M’][,’-d’][,’-f’,’<pat>’][,’-
+   m’,’<pat>’])
      Arguments  and  search operation are as with Vimgrep,  except  that
-     FNonly and terse both default to 1.
+     return of file name only is set.
    Return Opens matching files in buffers for editing.
    Example:
-   VimgrepEdit \<match\s*( $VIMRUNTIME 1 1 \h\w*\.vim
-     Finds  all  occurrences of calls to the function ‘match’ (MC=1)  in
-     *.vim files in the $VIMRUNTIME directory and its subdirectories and
-     opens them for editing.
+   VimgrepEdit \<match\s*( $VIMRUNTIME -M –d -f \h\w*\.vim
+     Finds  all  occurrences of calls to the function  ‘match’  (-M)  in
+     *.vim   (-f)   files   in  the  $VIMRUNTIME   directory   and   its
+     subdirectories (-d) and opens them for editing.
    Example:
-   call EditVimgrep(‘\h\w*\indent\w*\s*(‘,$VIMRUNTIME.’/indent/*.vim’,0)
+   call EditVimgrep(‘\h\w*\indent\w*\s*(‘,$VIMRUNTIME.’/indent/*.vim’)
      Searches  all  *.vim files in the $VIMRUNTIME indent directory  for
-     occurrences  of any function reference containing ‘indent’  in  its
-     name (case ignored, MC=0).  Note: If the default for g:VGMCDflt  is
-     used, MC need not be specified to ignore case in this instance.
+     occurrences of any function reference containing ‘indent’ in its.
  
    VimgrepEditDel
      Deletes all buffers generated by VimgrepEdit/EditVimgrep().
 
    
-   VimgrepHelp srchpat[ MC fpat mpat]
-   call HelpVimgrep(‘srchpat’[,MC,’fpat’,’mpat’])
+   VimgrepHelp srchpat[ -M][ –f <pat>][ -m <pat>]
+   call HelpVimgrep(‘srchpat’[,’-M’][,’-f’,’<pat>’][,’-m’,’<pat>’])
      Arguments and search operation are as with VimgrepEdit, except that
      file is ‘doc/*.txt’ files in g:VGHlpDirs.
    Return Opens   matching   files   in  buffers   as   ‘:help’   files.
           Highlighting  for  srchpat is turned on and files  operate  as
           ‘:help’ files so tag searching is enabled.
    Example:
-   VimgrepHelp \<match\s*( 1
-     Finds  all  references to the function ‘match’ (MC=1) in  doc/*.txt
+   VimgrepHelp \<match\s*( -M
+     Finds  all  references to the function ‘match’  (-M)  in  doc/*.txt
      files in the g:VGHlpDirs directories and opens them as help files.
    Example:
-   call
-   HelpVimgrep(‘\<\%[\h\w]indent\w*\s*(‘,0,’’,’version\w*\.txt\>$\|todo\
-   w*\.txt\>$’)
+   call HelpVimgrep(‘\<\%[\h\w]indent\w*\s*(‘,
+     \’-m’,’version\w*\.txt\>$\|todo\w*\.txt\>$’)
      Searches  all  doc/*.txt files in the g:VGHlpDirs  directories  for
      occurrences  of any reference to a function containing ‘indent’  in
      its  name  (case ignored, MC=0).  version*.txt and todo*.txt  files
@@ -243,24 +237,26 @@ VimgrepToBuf        ToBufVimgrep()         2         6
    VimgrepHelpDel
      Deletes all buffers generated by VimgrepHelp/HelpVimgrep().
 
-   VimgrepHelpList srchpat[ MC fpat mpat]
-   call ListHelpVimgrep(‘srchpat’[,MC,’fpat’,’mpat’])
+   VimgrepHelpList srchpat[ -M][ –f <pat>][ -m <pat>]
+   call ListHelpVimgrep(‘srchpat’[,’-M’][,’-f’,’<pat>’][,’-m’,’<pat>’])
      Arguments and search operation are as with VimgrepHelp.
    Return Opens  a listing file of files that contain srchpat.   ‘o’  is
           mapped  to open the file listed in the cursor line.  The  file
           is  opened as a ‘:help’ file with srchpat highlighted and  tag
           searching enabled.
    
-   VimgrepList srchpat file[ MC doSubs fpat mpat]
-   call ListVimgrep(‘srchpat’,‘file’[,MC,doSubs,’fpat’,’mpat’])
+   VimgrepList srchpat file[ -M][ -d][ –f <pat>][ -m <pat>]
+   call ListVimgrep(‘srchpat’,‘file’[,’-M’][,’-d’][,’-f’,’<pat>’][,’-
+   m’,’<pat>’])
      Arguments  and  search operation are as with Vimgrep,  except  that
-     FNonly and terse both default to 1.
+     file name only return is set.
    Return Opens  a listing file of files that contain srchpat.   ‘o’  is
           mapped to open the file listed in the cursor line for editing.
 
-   VimgrepToBuf srchpat file[ MC FNonly terse doSubs fpat mpat]
+   VimgrepToBuf srchpat file[ -M][ -F][ -t][ -d][ –f <pat>][ -m <pat>]
    call
-   ToBufVimgrep(‘srchpat’,’file’[,MC,FNonly,terse,doSubs,’fpat’,’mpat’])
+     \ToBufVimgrep(‘srchpat’,’file’[,’-M’,’-F’,’-t’,’-d’,’-f’,’<pat>’,’-
+   m’,’<pat>’])
      Searches as per Vimgrep for srchpat.
    Return Opens a buffer of filenames and lines that match srchpat.  The
           user  is prompted for a file name either in a browser in  gvim
@@ -275,7 +271,7 @@ VimgrepToBuf        ToBufVimgrep()         2         6
      reasons:  1)  completeness,  2) to provide a  reference  point  for
      searching.  Consider:
    
-   Vimgrep endif % 0 0 0 0 \w*\.\(vim\|txt\)\>
+   Vimgrep endif % -f \w*\.\(vim\|txt\)\>
      This  searches for the pattern in all .vim and .txt  files  in  the
      current buffer’s directory.  Empty quotes may also be used as  well
      as  dot  (an unquoted period for the command, a quoted one for  the
