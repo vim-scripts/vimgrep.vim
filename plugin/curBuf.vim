@@ -1,7 +1,12 @@
 " Vim plugin for source/execute of the current buffer
 " Language:    * (various)
 " Maintainer:  Dave Silvia <dsilvia@mchsi.com>
-" Date:        7/6/2004
+" Date:        8/8/2004
+"
+" Version 1.1
+"   Fixed:
+"     -  problem with spaces in path name
+"        when exec-ing a file.
 
 " SUMMARY:
 "
@@ -79,8 +84,11 @@ function s:SrcIt()
 endfunction
 function s:ExeIt()
 	update
-	let execScriptPath="!".expand("%:p")
-	execute execScriptPath
+	let execScriptPath=expand("%:p")
+	if match(execScriptPath,'\s')
+		let execScriptPath='"'.execScriptPath.'"'
+	endif
+	execute '!'.execScriptPath
 endfunction
 " add mappings for same... if you don't want f8/f9, change to your
 " preference with 'let curBuf[Run|Exe]Key=' before you source this script

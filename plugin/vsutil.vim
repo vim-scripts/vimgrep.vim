@@ -1,9 +1,13 @@
 " Vim plugin of vim script utilities
 " Language:    vim script
 " Maintainer:  Dave Silvia <dsilvia@mchsi.com>
-" Date:        7/31/2004
+" Date:        8/8/2004
 "
 "
+" Version 1.1
+"   New:
+"    -  Added sorting from eval.txt example
+"    -  Added Uniq()
 
 function! IsVimNmr(var)
 	let l:omega=matchend(a:var,'^\%[0x]\d*')
@@ -199,11 +203,119 @@ function! s:DebugMsg(script,func,msg,...)
 	echohl None
 endfunction
 
-function! Pause(args)
-	echohl Identifier 
+function! Pause(args,...)
+	echohl Comment
+	if a:0
+		execute 'echohl '.a:1 
+	endif
 	echo a:args
 	echohl Cursor
 	echo "          Press a key to continue"
 	echohl None
 	call getchar()
+endfunction
+
+command! -nargs=1 Gwin call s:gotoWin(<args>)
+function! s:gotoWin(nr)
+	if a:nr < 1 || winwidth(a:nr) == -1
+		" non- existent
+		return
+	endif
+	execute a:nr.'wincmd w'
+endfunction
+
+" Got this from eval.txt examples.  Pretty handy.
+
+"Sorting lines (by Robert Webb) ~
+
+"Here is a Vim script to sort lines.  Highlight the lines in Vim and type
+":Sort".  This doesn't call any external programs so it'll work on any
+"platform.  The function Sort() actually takes the name of a comparison
+"function as its argument, like qsort() does in C.  So you could supply it
+"with different comparison functions in order to sort according to date etc.
+">
+" Function for use with Sort(), to compare two strings.
+function! Strcmp(str1, str2)
+	if a:str1 < a:str2
+		return -1
+	elseif a:str1 > a:str2
+		return 1
+	else
+		return 0
+	endif
+endfunction
+
+" Sort lines.  SortR() is called recursively.
+function! SortR(start, end, cmp)
+	if a:start >= a:end
+		return
+	endif
+	let partition = a:start - 1
+	let middle = partition
+	let partStr = getline((a:start + a:end) / 2)
+	let i = a:start
+	while i <= a:end
+		let str = getline(i)
+		exec "let result = " . a:cmp . "(str, partStr)"
+		if result <= 0
+			" Need to put it before the partition.  Swap lines i and partition.
+			let partition = partition + 1
+			if (result == 0)
+				let middle = partition
+			endif
+			if (i != partition)
+				let str2 = getline(partition)
+				call setline(i, str2)
+				call setline(partition, str)
+			endif
+		endif
+		let i = i + 1
+	endwhile
+
+	" Now we have a pointer to the "middle" element, as far as partitioning
+	" goes, which could be anywhere before the partition.  Make sure it is at
+	" the end of the partition.
+	if middle != partition
+		let str = getline(middle)
+		let str2 = getline(partition)
+		call setline(middle, str2)
+		call setline(partition, str)
+	endif
+	call SortR(a:start, partition - 1, a:cmp)
+	call SortR(partition + 1, a:end, a:cmp)
+endfunc
+
+" To Sort a range of lines, pass the range to Sort() along with the name of a
+" function that will compare two lines.
+function! Sort(cmp) range
+	call SortR(a:firstline, a:lastline, a:cmp)
+endfunc
+
+" :Sort takes a range of lines and sorts them.
+command! -nargs=0 -range Sort <line1>,<line2>call Sort("Strcmp")
+
+function! Uniq(sline,eline)
+	let eline=a:eline
+	if eline > line('$')
+		let eline=line('$')
+	endif
+	let cline=a:sline
+	if cline < 1
+		let cline=1
+	endif
+	if cline >= eline
+		echoerr "Uniq(".a:sline.",".a:eline."): resolves to Uniq(".cline.",".eline.")"
+		echoerr "First line must resolve to less than second"
+		return
+	endif
+	execute "normal ".cline."G"
+	while cline < eline
+		if getline(cline) == getline(cline+1)
+			normal dd
+			let eline=eline-1
+		else
+			normal j
+		endif
+		let cline=line('.')
+	endwhile
 endfunction

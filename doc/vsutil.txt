@@ -116,7 +116,7 @@ Page 1 of 3
                          > 1 for error
                         if not specified, 0 for normal
       echomsg format    <parent-script>::<functions(s)>: <message>
-      displayed         in black for normal
+      displayed in      black for normal
                         red for warning
                         reverse red for error
       
@@ -130,6 +130,13 @@ Page 1 of 3
  
  The  msg is displayed and the prompt ‘Press a key to continue’,  giving
  the user an opportunity to view the information.
+ 
+ Sorting functions/commands from example by Robert Webb added.   See  :h
+ eval-examples ‘Sorting lines (by Robert Webb)’ for details.
+ 
+ Uniq() is a function that compares adjacent lines in a file and if they
+ are equal, deletes one.
+                         Uniq(strtline,endline)
  
 
  
