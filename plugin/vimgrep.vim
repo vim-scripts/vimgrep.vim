@@ -1,8 +1,13 @@
 " Language:    vim script
 " Maintainer:  Dave Silvia <dsilvia@mchsi.com>
-" Date:        8/11/2004
+" Date:        8/19/2004
 "
 
+" Version 3.1
+"   Enhanced:
+"    -  Rewrote s:vimGrep() for
+"       search optimization.
+"
 " Version 3.0
 "   New:
 "    -  Rewrote to change optional
@@ -697,10 +702,10 @@ let s:PatNotFound=nr2char(16).nr2char(14).nr2char(6)."\<NL>"
 
 "rqrd args: srchpat
 " opt args: MC
-"Help:command  VimgrepBufsToBuf srchpat [MC]
+"Help:command  VimgrepBufsToBuf srchpat[ -M]
 command! -nargs=+ VimgrepBufsToBuf call BufsToBufVimgrep(<f-args>)
 
-"Help:function BufsToBufVimgrep('srchpat'[,MC])
+"Help:function BufsToBufVimgrep('srchpat'[,'-M'])
 function! BufsToBufVimgrep(srchpat,...)
 	let thisBufNr=bufnr('')
 	b#
@@ -748,10 +753,10 @@ endfunction
 
 "rqrd args: srchpat
 " opt args: MC
-"Help:command  VimgrepBufs srchpat [MC]
+"Help:command  VimgrepBufs srchpat[ -M]
 command! -nargs=+ VimgrepBufs call Pause(BufsVimgrep(<f-args>))
 
-"Help:function BufsVimgrep('srchpat'[,MC])
+"Help:function BufsVimgrep('srchpat'[,'-M'])
 function! BufsVimgrep(srchpat,...)
 	let thisBufNr=bufnr('')
 	b#
@@ -775,10 +780,10 @@ endfunction
 
 "rqrd args: srchpat
 " opt args: MC fpat mpat
-"Help:command  VimgrepHelp srchpat [MC fpat mpat]
+"Help:command  VimgrepHelp srchpat[ -M][ -f <pat>][ -m <pat>]
 command! -nargs=+ VimgrepHelp call HelpVimgrep(<f-args>)
 
-"Help:function HelpVimgrep('srchpat'[,MC,'fpat','mpat'])
+"Help:function HelpVimgrep('srchpat'[,'-M'][,'-f','<pat>'][,'-m','<pat>'])
 function! HelpVimgrep(srchpat,...)
 	if &modified
 		VGMSG "current file has been modified - write before continuing",2
@@ -831,10 +836,10 @@ endfunction
 
 "rqrd args: srchpat
 " opt args: MC fpat mpat
-"Help:command  VimgrepHelpList srchpat [MC fpat mpat]
+"Help:command  VimgrepHelpList srchpat[ -M][ -f <pat>][ -m <pat>]
 command! -nargs=+ VimgrepHelpList call ListHelpVimgrep(<f-args>)
 
-"Help:function ListHelpVimgrep('srchpat'[,MC,'fpat','mpat'])
+"Help:function ListHelpVimgrep('srchpat'[,'-M'][,'-f','<pat>'][,'-m','<pat>'])
 function! ListHelpVimgrep(srchpat,...)
 	if &modified
 		VGMSG "current file has been modified - write before continuing",2
@@ -933,10 +938,10 @@ endfunction
 
 "rqrd args: srchpat file
 " opt args: MC doSubs fpat mpat
-"Help:command  VimgrepEdit srchpat file [MC doSubs fpat mpat]
+"Help:command  VimgrepEdit srchpat file[ -M][ -d][ -f <pat>][ -m <pat>]
 command! -nargs=* VimgrepEdit call EditVimgrep(<f-args>)
 
-"Help:function EditVimgrep('srchpat','file'[,MC,'fpat','mpat'])
+"Help:function EditVimgrep('srchpat','file'[,'-M'][,'-d'][,'-f','<pat>'][,'-m','<pat>'])
 function! EditVimgrep(srchpat,file,...)
 	if &modified
 		VGMSG "current file has been modified - write before continuing",2
@@ -987,10 +992,10 @@ endfunction
 " Thanks to Hari Krishna Dara for the idea for this one
 "rqrd args: file fpat
 " opt args: MC doSubs mpat
-"Help:command  Vimfind file fpat [MC doSubs mpat]
+"Help:command  Vimfind file fpat[ -M][ -d][ -m <pat>]
 command! -nargs=* Vimfind call Pause(Vimfind(<f-args>))
 
-"Help:function Vimfind('file','fpat'[,MC,doSubs,'mpat'])
+"Help:function Vimfind('file','fpat'[,'-M'][,'-d'][,'-m','<pat>'])
 function! Vimfind(file,fpat,...)
 	if !s:validSrchPat(a:fpat)
 		return ''
@@ -1016,10 +1021,10 @@ endfunction
 
 "rqrd args: file fpat
 " opt args: MC doSubs mpat
-"Help:command  VimfindToBuf file fpat [MC doSubs mpat]
+"Help:command  VimfindToBuf file fpat[ -M][ -d][ -m <pat>]
 command! -nargs=* VimfindToBuf call ToBufVimfind(<f-args>)
 
-"Help:function ToBufVimfind('file','fpat'[,MC,doSubs,'mpat'])
+"Help:function ToBufVimfind('file','fpat'[,'-M'][,'-d'][,'-m','<pat>'])
 function! ToBufVimfind(file,fpat,...)
 	if &modified
 		VGMSG "current file has been modified - write before continuing",2
@@ -1046,10 +1051,10 @@ endfunction
 
 "rqrd args: srchpat file
 " opt args: MC doSubs fpat mpat
-"Help:command  VimgrepList srchpat file [MC doSubs fpat mpat]
+"Help:command  VimgrepList srchpat file[ -M][ -d][ -f <pat>][ -m <pat>]
 command! -nargs=* VimgrepList call ListVimgrep(<f-args>)
 
-"Help:function ListVimgrep('srchpat','file'[,MC,doSubs,'fpat','mpat'])
+"Help:function ListVimgrep('srchpat','file'[,'-M'][,'-d'][,'-f','<pat>'][,'-m','<pat>'])
 function! ListVimgrep(srchpat,file,...)
 	SETOPTS
 	let s:FNonly=1
@@ -1087,10 +1092,10 @@ endfunction
 
 "rqrd args: file fpat
 " opt args: MC doSubs mpat
-"Help:command  VimfindList file fpat [MC doSubs mpat]
+"Help:command  VimfindList file fpat[ -M][ -d][ -m <pat>]
 command! -nargs=* VimfindList call ListVimfind(<f-args>)
 
-"Help:function ListVimfind('file','fpat'[,MC,doSubs,'mpat'])
+"Help:function ListVimfind('file','fpat'[,'-M'][,'-d'][,'-m','<pat>'])
 function! ListVimfind(file,fpat,...)
 	SETOPTS
 	let Ret=Vimfind(a:file,a:fpat)
@@ -1119,10 +1124,10 @@ endfunction
 
 "rqrd args: srchpat file
 " opt args: MC FNonly terse doSubs fpat mpat
-"Help:command  VimgrepToBuf srchpat file [MC FNonly terse doSubs fpat mpat]
+"Help:command  VimgrepToBuf srchpat file[ -M][ -F][ -t][ -d][ -f <pat>][ -m <pat>]
 command! -nargs=* VimgrepToBuf call ToBufVimgrep(<f-args>)
 
-"Help:function ToBufVimgrep('srchpat','file'[,MC,FNonly,terse,doSubs,'fpat','mpat'])
+"Help:function ToBufVimgrep('srchpat','file'[,'-M'][,'-F'][,'-t'][,'-d'][,'-f','<pat>'][,'-m','<pat>'])
 function! ToBufVimgrep(srchpat,file,...)
 	if &modified
 		VGMSG "current file has been modified - write before continuing",2
@@ -1154,10 +1159,10 @@ endfunction
 
 "rqrd args: srchpat file
 " opt args: MC FNonly terse doSubs fpat mpat
-"Help:command  Vimgrep srchpat file [MC FNonly terse doSubs fpat mpat]
+"Help:command  Vimgrep srchpat file[ -M][ -F][ -t][ -d][ -f <pat>][ -m <pat>]
 command! -nargs=* Vimgrep call Pause(Vimgrep(<f-args>))
 
-"Help:function Vimgrep('srchpat','file'[,MC,FNonly,terse,doSubs,'fpat','mpat'])
+"Help:function Vimgrep('srchpat','file'[,'-M'][,'-F'][,'-t'][,'-d'][,'-f','<pat>'][,'-m','<pat>'])
 function! Vimgrep(srchpat,file,...)
 	SETOPTS
 	let s:optsSet=0
@@ -1292,7 +1297,7 @@ function! Vimgrep(srchpat,file,...)
 				continue
 			endif
 		endif
-		let theResult=s:vimGrep(a:srchpat,thisFile)
+		silent let theResult=s:vimGrep(a:srchpat,thisFile)
 		if (s:FNonly && theResult == "\<NL>") || !s:FNonly
 			if !s:terse
 				if theResult == s:PatNotFound
@@ -1320,21 +1325,14 @@ function! Vimgrep(srchpat,file,...)
 endfunction
 
 function! s:vimGrep(srchpat,file)
-	if s:MC == 1 | let IC='noignorecase' | else | let IC='ignorecase' | endif
-	let FNonly=s:FNonly
-	" Note: first line has to be checked independently as the search pattern may
-	"       match line 1, col 1 and normal matches start with the first
-	"       character _after_ the cursor.
 	let origlin=line('.')
 	let origcol=col('.')
 	let NL="\<NL>"
 	let Ret=NL
 	let bufIsListed=buflisted(a:file)
-	let openCmd=
-		\'silent! view '.a:file
 	if !bufIsListed
 		try
-			execute openCmd
+			execute 'silent :view +set\ nobuflisted\ noswapfile\ hidden '.a:file
 		catch
 			let Ret=Ret.s:thisScript."::".expand("<sfile>").": Could not open ".a:file." for searching".NL
 			let Ret=Ret.v:errmsg.NL
@@ -1343,103 +1341,47 @@ function! s:vimGrep(srchpat,file)
 	else
 		execute "b".bufnr(a:file)
 	endif
-	let setupCmd=
-		\"let saveIC=&ignorecase | set ".IC." | ".
-		\"let saveWS=&wrapscan | set nowrapscan | ".
-		\"let lastLine=0 | ".
-		\"let thePat='".a:srchpat."'"
-	try
-		execute setupCmd
-	catch
-		let Ret=Ret.s:thisScript."::".expand("<sfile>").": Set up ".a:file." for searching failed".NL
-		if !bufIsListed
-			silent! bwipeout
-		endif
-		let &wrapscan=saveWS
-		let &ignorecase=saveIC
-		return Ret
-	endtry
 	let thePat=a:srchpat
-	let lastLine=0
+	if !s:MC
+		let thePat=thePat.'\c'
+	endif
+	" Note: first line has to be checked independently as the search pattern may
+	"       match line 1, col 1 and normal matches start with the first
+	"       character _after_ the cursor.
 	let cline=getline(1)
-	if match(cline,thePat) != -1 && FNonly
-		VGMSG "(0):\<NL> ".a:file."\<NL> ".cline
-		if !bufIsListed
-			silent! bwipeout
-		endif
-		let &wrapscan=saveWS
-		let &ignorecase=saveIC
-		call cursor(origlin,origcol)
-		return NL
-	endif
-	if match(cline,thePat) != -1
-		VGMSG "(1):\<NL> ".a:file."\<NL> ".cline
-		let Ret=Ret.'1:'.cline.NL
-	endif
-	call cursor(1,col($))
-	let matchedIt=0
-	let srchCmd=
-		\"silent! /".a:srchpat."\\|\\%$/"
-	try
-		execute srchCmd
-	catch
-		let Ret=Ret.s:thisScript."::".expand("<sfile>").": Search of ".a:file." for ".a:srchpat." failed".NL
-		let Ret=Ret.v:errmsg.NL
-		if !bufIsListed
-			silent! bwipeout
-		endif
-		let &wrapscan=saveWS
-		let &ignorecase=saveIC
-		call cursor(origlin,origcol)
-		return Ret
-	endtry
-	let cline=getline('.')
-	if match(cline,thePat) != -1 && FNonly
-		VGMSG "(2):\<NL> ".a:file."\<NL> ".cline
-		if !bufIsListed
-			silent! bwipeout
-		endif
-		let &wrapscan=saveWS
-		let &ignorecase=saveIC
-		call cursor(origlin,origcol)
-		return NL
-	endif
-	let lNum=line('.')
-	let lastLine=lNum
-	while match(cline,thePat) != -1
-		VGMSG "(3):\<NL> ".a:file."\<NL> ".cline
-		let Ret=Ret.lNum.':'.cline.NL
-		try
-			execute srchCmd
-		catch
-			let Ret=Ret.s:thisScript."::".expand("<sfile>").": Search of ".a:file." for ".a:srchpat." failed".NL
-			let Ret=Ret.v:errmsg.NL
+	if match(cline,thePat) != -1 
+		if s:FNonly
 			if !bufIsListed
 				silent! bwipeout
 			endif
-			let &wrapscan=saveWS
-			let &ignorecase=saveIC
 			call cursor(origlin,origcol)
-			return Ret
-		endtry
-		let cline=getline('.')
-		let lNum=line('.')
-		if lastLine ==# line('$')
-			break
+			return NL
+		else
+			let Ret=Ret.'1:'.cline.NL
 		endif
-		let lastLine=lNum
-	endwhile
+	endif
+	call cursor(1,col('$'))
+	let slnr=search(thePat,'W')
+	if slnr
+		if s:FNonly
+			if !bufIsListed
+				silent! bwipeout
+			endif
+			call cursor(origlin,origcol)
+			return NL
+		endif
+		while slnr
+			let Ret=Ret.slnr.':'.getline(slnr).NL
+			let slnr=search(thePat,'W')
+		endwhile
+	endif
 	if !bufIsListed
 		silent! bwipeout
 	endif
-	let &wrapscan=saveWS
-	let &ignorecase=saveIC
-	let emptyResult=Ret == NL || match(Ret,'^\s*$') != -1
-	if emptyResult
-		call cursor(origlin,origcol)
+	call cursor(origlin,origcol)
+	if Ret == NL || match(Ret,'^\s*$') != -1
 		return s:PatNotFound
 	endif
-	call cursor(origlin,origcol)
 	return Ret
 endfunction
 
