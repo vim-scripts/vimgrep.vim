@@ -198,3 +198,12 @@ function! s:DebugMsg(script,func,msg,...)
 	echomsg a:script."::".a:func.": ".a:msg
 	echohl None
 endfunction
+
+function! Pause(args)
+	echohl Identifier 
+	echo a:args
+	echohl Cursor
+	echo "          Press a key to continue"
+	echohl None
+	call getchar()
+endfunction

@@ -1,5 +1,5 @@
-Vimgrep
-Page 1 of 8
+Vimgrep version 2.1
+Page 1 of 9
 
 
 
@@ -82,6 +82,7 @@ Page 1 of 8
 VimgrepBufsToBuf  BufsToBufVimgrep()       1             1
   VimgrepHelp       HelpVimgrep()          1             1
  VimgrepHelpDel                                           
+    Vimfind           Vimfind()            2             3
  
  
  As stated before, arguments are standard, so we’ll only review where they
@@ -115,6 +116,11 @@ VimgrepBufsToBuf  BufsToBufVimgrep()       1             1
  as  VimgrepBufs/BufsVimgrep().  The difference is that the output goes to
  a  buffer for perusal instead of being displayed on the command  line  or
  being returned as a argument.
+ 
+                  call Vimfind(dir,fpat[,MC,doSubs,mpat])
+ 
+ Vimfind/Vimfind() dir is  a directory or list of directories which are
+ searched for instances of fpat.
  
 
  
@@ -223,7 +229,8 @@ bitmaps\|doc\|keymap\|lang\|syntax\|tools\|tutor
  
  This  searches for the pattern in all .vim and .txt files in the  current
  buffer’s  directory.  Empty quotes may also be used as well  as  dot  (an
- unquoted period for the command, a quoted one for the function).
+ unquoted period for the command, a quoted one for the function).  Another
+ alias file name is * which indicates the directories in g:VGDirs.
  
       VimgrepToBuf
       ToBufVimgrep()    Search files for instances of a string or
@@ -265,6 +272,7 @@ bitmaps\|doc\|keymap\|lang\|syntax\|tools\|tutor
  the command line.  Location of result file defaults to the current buffer
  file’s directory.  Search pattern is highlighted.
  
+      
       VimgrepHelp
       HelpVimgrep()Search help (doc) files for instances of a string
                    or regular expression pattern and open the files
@@ -277,6 +285,35 @@ bitmaps\|doc\|keymap\|lang\|syntax\|tools\|tutor
  
                 VimgrepHelpDel    Delete buffers opened by
                         VimgrepHelp/HelpVimgrep().
+ 
+      
+      Vimfind
+      Vimfind()    Search in director[y|ies] for file(s).
+      
+      Example:
+                    Vimfind &runtimepath \<a\w*\.vim\>
+      
+      Searches:           &runtimepath directories for files a*.vim.
+      
+      Example:
+                          Vimfind * \<a\w*\.vim\>
+      
+      Searches:           g:VGDirs directories for files a*.vim.
+      
+      Example:
+                   Vimfind /usr/local/vim \<a\w*\.vim\>
+      
+      Searches:           /usr/local/vim directory for files a*.vim.
+      
+      Example:
+      
+   Vimfind &runtimepath \<a\w*\.vim\> 0 1 colors\|bitmaps\|keymap\|lang
+      
+      Searches:           &runtimepath directories and their
+                          subdirectories excepting directory/file
+                          patterns that match colors or bitmaps or
+                          keymap or lang for files a*.vim.
+ 
  
 
 

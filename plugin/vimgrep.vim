@@ -1,7 +1,26 @@
 " Vim plugin script grep utility
 " Language:    vim script
 " Maintainer:  Dave Silvia <dsilvia@mchsi.com>
-" Date:        7/31/2004
+" Date:        8/4/2004
+"
+" Version 2.1
+"   Fixed:
+"    -  echo-ed results scrolling off
+"       command line by adding Pause()
+"    -  problem with file argument
+"       being '/' would append '/*' to
+"       search which always failed.
+"       Now only appends extra '/' if
+"       file argument does not end in
+"       '/' or '\'.
+"   Enhanced:
+"    -  Stopped search after first match
+"       if FNonly.  Do no search at all
+"       if srchpat == '\%$'
+"   New:
+"    -  Added Vimfind
+"       (inspired by email from
+"         Hari Krishna Dara)
 "
 " Version 2.0
 "   Changed script name to vimgrep.vim
@@ -85,7 +104,7 @@ function! s:setUpVimgrep()
 		return
 	endif
 	let g:VimgrepSetUp=1
-" directory in which to create dummy file
+" directory in which to create dummy file and grep program result file
 if !exists("g:VGCreatDir")
 	let g:VGCreatDir="~"
 endif
@@ -225,6 +244,10 @@ function! s:doDummyView()
 endfunction
 
 function! s:validSrchPat(srchpat)
+	if a:srchpat == ''
+		VGMSG "empty srchpat",2
+		return 0
+	endif
 	call s:doDummyView()
 	try
 		execute "silent /".a:srchpat
@@ -303,7 +326,12 @@ function! s:getDirFiles(thisFile,doSubs,fpat,mpat,fileRef)
 	endif
 	let theFiles=a:fileRef
 	if isdirectory(thisFile)
-		let tmpFiles=expand(thisFile.'/*')
+		let trailChar=thisFile[strlen(thisFile)-1]
+		if trailChar != '/' && trailChar != '\'
+			let tmpFiles=glob(thisFile.'/*')
+		else
+			let tmpFiles=glob(thisFile.'*')
+		endif
 		if tmpFiles != ''
 			let b:subFiles{s:depth}=tmpFiles
 			let tmpFname{s:depth}="b:subFiles".s:depth
@@ -388,6 +416,19 @@ function! s:recurseForDirs(dir,refDirList,MC,mpat)
 	unlet! {bContents{s:dirDepth}}
 endfunction
 
+function! s:getVRBfname()
+	if has("browse")
+		let VRBfile=browse(1,'Vimgrep Result Buffer File',expand("%:p:h"),'VimgrepResultBuf.txt')
+	else
+		let thisDir=expand("%:p:h")
+		let VRBfile=input("File Name to save results? ",thisDir.'/VimgrepResultBuf.txt')
+		if !QualifiedPath(VRBfile)
+			let VRBfile=thisDir.'/'.VRBfile
+		endif
+	endif
+	return VRBfile
+endfunction
+
 " strings to identify 'Pattern not found' return
 " that won't be confused with normal return (hopefully!)
 let s:PatNotFound=nr2char(16).nr2char(14).nr2char(6)."\<NL>"
@@ -402,15 +443,7 @@ function! BufsToBufVimgrep(srchpat,...)
 	if bufname('') == ''
 		call s:doDummyView()
 	endif
-	if has("browse")
-		let VRBfile=browse(1,'Vimgrep Result Buffer File',expand("%:p:h"),'VimgrepResultBuf.txt')
-	else
-		let thisDir=expand("%:p:h")
-		let VRBfile=input("File Name to save results? ",thisDir.'/VimgrepResultBuf.txt')
-		if !QualifiedPath(VRBfile)
-			let VRBfile=thisDir.'/'.VRBfile
-		endif
-	endif
+	let VRBfile=s:getVRBfname()
 	if VRBfile == ''
 		VGMSG "Need file name for result buffer",2
 		return
@@ -435,20 +468,17 @@ function! BufsToBufVimgrep(srchpat,...)
 	let holdz=@z
 	let @z=Ret
 	normal "zP
-	let srchpat='^\D'
-	let srchCmd=
-		\"let @/='".srchpat."' | ".
-		\"silent! /".srchpat
-	normal G
 	let holdWS=&wrapscan
 	set wrapscan
-	execute srchCmd
+	let @/=a:srchpat
+	execute "normal \<C-End>"
+	silent! normal n
 	let &wrapscan=holdWS
 	file
 	let @z=holdz
 endfunction
 
-command! -nargs=+ VimgrepBufs echo BufsVimgrep(<f-args>)
+command! -nargs=+ VimgrepBufs call Pause(BufsVimgrep(<f-args>))
 
 function! BufsVimgrep(srchpat,...)
 	if a:0  && a:1 | let MC=a:1 | else | let MC=g:VGMCDflt | endif
@@ -491,26 +521,29 @@ function! HelpVimgrep(srchpat,...)
 		return
 	endif
 	if !MC | let mc='ignorecase' | else | let mc='noignorecase' | endif
+	let saveWS=&wrapscan
+	set wrapscan
+	let @/=a:srchpat
 	let tailCmd='setlocal iskeyword+='.g:VGHlpISK.' | '.
 		\'setlocal '.mc.' | '.
 		\"setlocal filetype=help | ".
 		\"setlocal buftype=help | ".
 		\"setlocal nomodifiable | ".
 		\"let g:VGHlpBufs=g:VGHlpBufs.b:bufNo.':'"
-	let srchCmd=
-		\"let @/='".a:srchpat."' | ".
-		\"silent! /".a:srchpat
-	let startBuf=b:bufNo
+	let startName=thisFile
 	while thisFile != ''
-		let editCmd="silent! view ".thisFile." | ".tailCmd. " | ".srchCmd
+		let editCmd="silent! view ".thisFile." | ".tailCmd
 		execute editCmd
+		execute "normal \<C-End>"
+		silent! normal n
 		b#
 		let thisFile=StrListTok('','b:helpListVimgrep')
 	endwhile
-	silent "b".startBuf
-	silent bnext
-	normal gg
-	execute srchCmd
+	let startBuf=bufnr(startName)
+	execute ":b".startBuf
+	execute "normal \<C-End>"
+	silent! normal n
+	let &wrapscan=saveWS
 	file
 	unlet! b:helpListVimgrep
 endfunction
@@ -545,13 +578,13 @@ function! EditVimgrep(srchpat,file,...)
 		return
 	endif
 	if !MC | let mc='ignorecase' | else | let mc='noignorecase' | endif
-	let startBuf=b:bufNo
+	let saveWS=&wrapscan
+	set wrapscan
+	let @/=a:srchpat
 	let tailCmd=
 		\'setlocal '.mc.' | '.
 		\"let g:VGEdtBufs=g:VGEdtBufs.b:bufNo.':'"
-	let srchCmd=
-		\"let @/='".a:srchpat."' | ".
-		\"silent! /".a:srchpat
+	let startName=thisFile
 	while thisFile != ''
 		if !buflisted(thisFile)
 			let itsPath=fnamemodify(thisFile,":p:h")
@@ -559,20 +592,23 @@ function! EditVimgrep(srchpat,file,...)
 			let itsSwap=itsPath.'/.'.itsName.'.swp'
 			let itsSwap=glob(itsSwap)
 			if itsSwap == ''
-				let editCmd="silent! edit ".thisFile." | ".tailCmd." | ".srchCmd
+				let editCmd="silent! edit ".thisFile." | ".tailCmd
 			else
-				let editCmd="silent! view ".thisFile." | setlocal nomodifiable | ".tailCmd." | ".srchCmd
+				let editCmd="silent! view ".thisFile." | setlocal nomodifiable | ".tailCmd
 			endif
 			execute editCmd
+			execute "normal \<C-End>"
+			silent! normal n
 			silent b#
 		endif
 		let thisFile=StrListTok('','b:editListVimgrep')
 	endwhile
+	let startBuf=bufnr(startName)
 	let goHome='silent b'.startBuf
 	execute goHome
-	silent bnext
-	normal gg
-	execute srchCmd
+	execute "normal \<C-End>"
+	silent! normal n
+	let &wrapscan=saveWS
 	file
 	unlet! b:editListVimgrep
 endfunction
@@ -599,16 +635,7 @@ function! ToBufVimgrep(srchpat,file,...)
 	if bufname('') == ''
 		call s:doDummyView()
 	endif
-	if has("browse")
-		let VRBfile=browse(1,'Vimgrep Result Buffer File',expand("%:p:h"),'VimgrepResultBuf.txt')
-	else
-		let thisDir=expand("%:p:h")
-		let defaultFile=thisDir.'/VimgrepResultBuf.txt'
-		let VRBfile=input("File Name to save results?\n",defaultFile)
-		if !QualifiedPath(VRBfile)
-			let VRBfile=thisDir.'/'.VRBfile
-		endif
-	endif
+	let VRBfile=s:getVRBfname()
 	if VRBfile == ''
 		VGMSG "Need file name for result buffer",2
 		return
@@ -623,16 +650,13 @@ function! ToBufVimgrep(srchpat,file,...)
 		let @z=holdz
 		return
 	endif
+	let holdWS=&wrapscan
+	let @/=a:srchpat
+	set wrapscan
 	execute 'edit '.VRBfile
 	normal "zP
-	let srchpat='^\D'
-	let srchCmd=
-		\"let @/='".srchpat."' | ".
-		\"silent! /".srchpat
-	normal G
-	let holdWS=&wrapscan
-	set wrapscan
-	execute srchCmd
+	execute "normal \<C-End>"
+	silent! normal n
 	let &wrapscan=holdWS
 	file
 	let @z=holdz
@@ -653,7 +677,21 @@ function! MiniVimGrep(srchpat,file,...)
 	return Ret
 endfunction
 
-command! -nargs=* Vimgrep echo Vimgrep(<f-args>)
+" Thanks to Hari Krishna Dara for the idea for this one
+command! -nargs=* Vimfind call Pause(Vimfind(<f-args>))
+
+" opt args MC doSubs mpat
+function! Vimfind(file,fpat,...)
+	if !s:validSrchPat(a:fpat)
+		return ''
+	endif
+	if a:0  && a:1 | let MC =a:1 | else | let MC     =g:VGMCDflt  | endif
+	if a:0 > 1 | let doSubs =a:2 | else | let doSubs =g:VGdoSubsDflt  | endif
+	if a:0 > 2 | let mpat   =a:3 | else | let mpat   =g:VGmpatDflt | endif
+	return Vimgrep('\%$',a:file,MC,1,0,doSubs,a:fpat,mpat)
+endfunction
+
+command! -nargs=* Vimgrep call Pause(Vimgrep(<f-args>))
 
 let s:VGdepth=0
 
@@ -683,6 +721,9 @@ function! Vimgrep(srchpat,file,...)
 		else
 			let aFile=expand("%:p")
 		endif
+	endif
+	if aFile == '*'
+		let aFile=g:VGDirs
 	endif
 	VGMSG " ".
 			\"\<NL>  Search Pattern: ".a:srchpat.
@@ -755,28 +796,40 @@ function! Vimgrep(srchpat,file,...)
 	let b:fileListVimgrep=''
 	let thisFile=StrListTok(b:theArgList,'b:theArgList')
 	while thisFile != ''
+		VGMSG " ".
+		\"\<NL>  Getting Files from:".
+		\"\<NL>    ".thisFile.
+		\"\<NL>  That match the pattern: ".fpat.
+		\"\<NL>  And don't match the pattern:".mpat.
+		\"\<NL>  Doing subdirectories=".doSubs
 		call s:getDirFiles(thisFile,doSubs,fpat,mpat,'b:fileListVimgrep')
 		let thisFile=StrListTok('','b:theArgList')
 	endwhile
+	VGMSG "b:fileListVimgrep:\<NL>".b:fileListVimgrep
 	if b:fileListVimgrep == ''
 		let thisFile=StrListTok(theArg,'b:fileListVimgrep')
 	else
 		let thisFile=StrListTok(b:fileListVimgrep,'b:fileListVimgrep')
 	endif
 	while thisFile != ''
-		let thisFile=fnamemodify(thisFile,":p")
-		if glob(thisFile) == ''
-			let thisFile=StrListTok('','b:fileListVimgrep')
-			continue
-		endif
-		if fpat != '' && match(thisFile,fpat) == -1
-			let thisFile=StrListTok('','b:fileListVimgrep')
-			continue
-		endif
+"		let thisFile=fnamemodify(thisFile,":p")
+"		if glob(thisFile) == ''
+"			let thisFile=StrListTok('','b:fileListVimgrep')
+"			continue
+"		endif
+"		if fpat != '' && match(thisFile,fpat) == -1
+"			let thisFile=StrListTok('','b:fileListVimgrep')
+"			continue
+"		endif
 		if isdirectory(thisFile)
 			if !terse
 				let Ret=Ret."Vimgrep: ".thisFile.": Directory\<NL>"
 			endif
+			let thisFile=StrListTok('','b:fileListVimgrep')
+			continue
+		endif
+		if a:srchpat == '\%$' && FNonly
+			let Ret=Ret.thisFile."\<NL>"
 			let thisFile=StrListTok('','b:fileListVimgrep')
 			continue
 		endif
@@ -890,6 +943,15 @@ function! s:vimGrep(srchpat,file,mc,fnonly)
 		return Ret
 	endtry
 	let cline=getline('.')
+	if match(cline,thePat) != -1 && FNonly
+		if !bufIsListed
+			silent! bwipeout
+		endif
+		let &wrapscan=saveWS
+		let &ignorecase=saveIC
+		call cursor(origlin,origcol)
+		return NL
+	endif
 	let lNum=line('.')
 	let lastLine=lNum
 	while match(cline,thePat) != -1 && lastLine != line('$')
@@ -921,12 +983,6 @@ function! s:vimGrep(srchpat,file,mc,fnonly)
 		call cursor(origlin,origcol)
 		return s:PatNotFound
 	endif
-	if FNonly
-		call cursor(origlin,origcol)
-		return NL
-	endif
 	call cursor(origlin,origcol)
 	return Ret
 endfunction
-
-"TODO:   

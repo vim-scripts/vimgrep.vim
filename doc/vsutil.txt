@@ -1,4 +1,4 @@
-Vimgrep
+vsutil
 Page 1 of 3
 
 
@@ -101,7 +101,7 @@ Page 1 of 3
       call FileParts(fname,’myFullName’,’myPathName’,’myName’,’myEx
                    t’)
       
- The  last  group consists of 3 commands and one script-local  function.
+ The  next  group consists of 3 commands and one script-local  function.
  It  is  for placing debug messages in code, which can be turned on  and
  off.  To start with, you need to execute the command SUDEBUGMSG to  set
  up  debugging  with  the  name of a parent script.   This  is  done  by
@@ -110,19 +110,26 @@ Page 1 of 3
  parent  script and in the parent script itself you place debug commands
  of the form:
                            DEBUGMSG msg[,lvl]
-      Where msg         is a string
-            lvl         is 0 for normal
+      Where msg    is a string
+                   lvl  is 0 for normal
                            1 for warning
                          > 1 for error
                         if not specified, 0 for normal
       echomsg format    <parent-script>::<functions(s)>: <message>
-      displayed in      black for normal
+      displayed         in black for normal
                         red for warning
                         reverse red for error
       
  
  Display  of the messages is toggled on and off by executing the command
  TGLDEBUGMSG.
+ 
+ Pause() is a function that allows echo-ing of messages/information  and
+ pausing to assure that they are seen.
+                               Pause(msg)
+ 
+ The  msg is displayed and the prompt ‘Press a key to continue’,  giving
+ the user an opportunity to view the information.
  
 
  
