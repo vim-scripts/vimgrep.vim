@@ -688,7 +688,14 @@ function! Vimfind(file,fpat,...)
 	if a:0  && a:1 | let MC =a:1 | else | let MC     =g:VGMCDflt  | endif
 	if a:0 > 1 | let doSubs =a:2 | else | let doSubs =g:VGdoSubsDflt  | endif
 	if a:0 > 2 | let mpat   =a:3 | else | let mpat   =g:VGmpatDflt | endif
-	return Vimgrep('\%$',a:file,MC,1,0,doSubs,a:fpat,mpat)
+	if a:fpat[0] == '\'
+		if a:fpat[1] != 'C' && a:fpat[1] != 'c'
+			if MC | let fpat='\C'.a:fpat | else | let fpat='\c'.a:fpat | endif
+		endif
+	else
+		if MC | let fpat='\C'.a:fpat | else | let fpat='\c'.a:fpat | endif
+	endif
+	return Vimgrep('\%$',a:file,0,1,0,doSubs,fpat,mpat)
 endfunction
 
 command! -nargs=* Vimgrep call Pause(Vimgrep(<f-args>))
