@@ -449,6 +449,29 @@ listing of all of the public commands/functions.</p>
  <tr>
   <td width=192 valign=top style='width:2.0in;border:solid windowtext .5pt;
   border-top:none;padding:0in 5.75pt 0in 5.75pt'>
+  <p class=MsoNormal><b><span style='color:maroon'>VimfindEdit</span></b></p>
+  </td>
+  <td width=192 valign=top style='width:2.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  padding:0in 5.75pt 0in 5.75pt'>
+  <p class=MsoNormal><b><span style='color:maroon'>EditVimfind()</span></b></p>
+  </td>
+  <td width=96 valign=top style='width:1.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  padding:0in 5.75pt 0in 5.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='color:blue'>2</span></p>
+  </td>
+  <td width=96 valign=top style='width:1.0in;border-top:none;border-left:none;
+  border-bottom:solid windowtext .5pt;border-right:solid windowtext .5pt;
+  padding:0in 5.75pt 0in 5.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><span
+  style='color:blue'>3</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=192 valign=top style='width:2.0in;border:solid windowtext .5pt;
+  border-top:none;padding:0in 5.75pt 0in 5.75pt'>
   <p class=MsoNormal><b><span style='color:maroon'>VimfindList</span></b></p>
   </td>
   <td width=192 valign=top style='width:2.0in;border-top:none;border-left:none;
@@ -727,10 +750,10 @@ listing of all of the public commands/functions.</p>
 <p class=DispTxt>There are also types of commands/functions in <b><span
 style='color:#333399'>vimgrep.vim</span></b>.</p>
 
-<p class=DispTxt>The basic type works like grep, searching for patterns in files
-and returning results to the standard output (in <b><span style='color:#333399'>Vim</span></b>’s
-case, the command line space for commands, and as a return value for a
-function).</p>
+<p class=DispTxt>The basic type works like grep, searching for patterns in
+files and returning results to the standard output (in <b><span
+style='color:#333399'>Vim</span></b>’s case, the command line space for
+commands, and as a return value for a function).</p>
 
 <p class=DispTxt>Other types operate in ways particularly suited to an editor,
 specifically, <b><span style='color:#333399'>Vim</span></b>.</p>
@@ -763,6 +786,10 @@ key is mapped to open the file in the line the cursor is on.</p>
 pattern is turned on, as appropriate.</p>
 
 <p class=DispTxt>&nbsp;</p>
+
+<span style='font-size:10.0pt;font-family:"Courier New";'><br clear=all style='page-break-before:
+always'>
+</span>
 
 <p class=Divider>&nbsp;</p>
 
@@ -809,7 +836,8 @@ style='color:black'>]</span>)</p>
 directory name, but it can be a <span style='color:#333399'>wildcard</span>
 specification.  <span style='color:blue'>fpat</span>
 can be a placeholder (‘’ or “”) or not. 
-Optional arguments are as used in <span style='color:maroon'>Vimgrep</span>.  <span style='color:maroon'>Vimfind</span>
+Optional arguments are as used in <span style='color:maroon'>Vimgrep</span>.
+ <span style='color:maroon'>Vimfind</span>
 sets file name only return.</p>
 
 <p class=return><span style='color:olive'>Return</span>  List of files from <span style='color:blue'>file</span> hierarchy
@@ -840,6 +868,28 @@ style='color:blue'>bitmaps</span>’, ‘<span style='color:blue'>keymap</span>’, ‘<
 style='color:blue'>tutor</span>’, or ‘<span style='color:blue'>lang</span>'.</p>
 
 <p class=return><span style='color:#993366'>&nbsp;</span></p>
+
+<p class=syntax>VimfindEdit <span style='color:blue'>file fpat</span><span
+style='color:black'>[ </span><span style='color:blue'>-M</span><span
+style='color:black'>][</span><span style='color:blue'> -d</span><span
+style='color:black'>][</span><span style='color:blue'> –m &lt;pat&gt;</span><span
+style='color:black'>]</span></p>
+
+<p class=syntax>call EditVimfind<span style='color:blue'>(‘file’</span>,<span
+style='color:blue'>’fpat’</span><span style='color:black'>[</span>,<span
+style='color:blue'>’-M’</span><span style='color:black'>][</span>,<span
+style='color:blue'>’-d’</span><span style='color:black'>][</span>,<span
+style='color:blue'>’-m’,’&lt;pat&gt;’</span><span style='color:black'>]</span>)</p>
+
+<p class=syntaxDesc><span style='color:blue'>file</span> and <span
+style='color:blue'>fpat</span> are as with <span style='color:maroon'>Vimfind</span>.</p>
+
+<p class=return><span style='color:olive'>Return</span>  Opens all found files for editing. 
+Operates as <span style='color:maroon'>VimgrepEdit</span> below.  <span style='color:maroon'>VimgrepEditDel</span>
+and its mapping, menu entry, and icon also apply to <span style='color:maroon'>VimfindEdit</span>.</p>
+
+<p class=return style='margin-left:0in;text-indent:0in'><span style='color:
+#993366'>&nbsp;</span></p>
 
 <p class=syntax>VimfindList <span style='color:blue'>file fpat</span><span
 style='color:black'>[ </span><span style='color:blue'>-M</span><span
@@ -887,6 +937,11 @@ style='color:maroon'>Vimfind</span> above would produce a buffer of file names
 to view and/or edit.</p>
 
 <p class=syntax>&nbsp;</p>
+
+<b><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;'><br
+clear=all style='page-break-before:always'>
+</span></b>
 
 <p class=syntax>Vimgrep <span style='color:blue'>srchpat</span> <span
 style='color:blue'>file</span><span style='color:black'>[ </span><span
@@ -1030,7 +1085,8 @@ style='color:blue'>indent</span>’ in its.</p>
 
 <p class=syntax>VimgrepEditDel</p>
 
-<p class=syntaxDesc>Deletes all buffers generated by <span style='color:maroon'>VimgrepEdit/EditVimgrep()</span>.</p>
+<p class=syntaxDesc>Deletes all buffers generated by <span style='color:maroon'>VimgrepEdit/EditVimgrep()</span><span
+style='color:windowtext'> and </span><span style='color:maroon'>VimfindEdit/EditVimfind()</span>.</p>
 
 <p class=MsoNormal>&nbsp;</p>
 
@@ -1068,11 +1124,6 @@ style='color:blue'>-M</span></p>
 style='color:#333399'>match</span>’ (<span style='color:blue'>-M</span>) in <span
 style='color:#333399'>doc/*.txt</span> files in the <span style='color:red'>g:VGHlpDirs</span>directories and opens them as <span
 style='color:#333399'>help files</span>.</p>
-
-<b><span style='font-size:10.0pt;
-font-family:"Courier New";color:red;'><br
-clear=all style='page-break-before:always'>
-</span></b>
 
 <p class=example><span style='color:red'>Example:</span></p>
 
@@ -1165,6 +1216,10 @@ style='color:blue'>srchpat</span>.  The
 user is prompted for a file name either in a browser in <span style='color:
 #333399'>gvim</span> or on the command line in <span style='color:#333399'>vim</span>.</p>
 
+<span style='font-size:10.0pt;font-family:Arial;'><br
+clear=all style='page-break-before:always'>
+</span>
+
 <p class=DispTxt>&nbsp;</p>
 
 <p class=Divider>&nbsp;</p>
@@ -1196,9 +1251,13 @@ which indicates the directories in <span style='color:red'>g:VGDirs</span>.</p>
 
 <p class=DispTxt>&nbsp;</p>
 
+<span style='font-size:10.0pt;font-family:"Courier New";'><br clear=all style='page-break-before:
+always'>
+</span>
+
 <p class=HeaderSep>&nbsp;</p>
 
-<p class=MsoNormal>&nbsp;</p>
+<p class=DispTxt>&nbsp;</p>
 
 <p class=DispTxt>There are also global variables that may have values specified
 to modify the behavior of <span style='font-family:
@@ -1281,7 +1340,7 @@ to expand(“%:p:h”)</span> and directories are searched in that order.</p>
 
 <p class=syntaxDesc>search directories for help files ‘<span style='color:#333399'>doc</span>’
 directory.  Default is <span
-style='color:#333399'>‘~’, &amp;runtimepath</span>.  When used, ‘<span style='color:#333399'>/doc/*.txt</span>’ is
+style='color:#333399'>‘~’, &amp;runtimepath</span>.  When used, ‘<span style='color:#333399'>/doc/*.txt</span>’ is
 appended to each element in the list and expanded.</p>
 
 <p class=DispTxt>&nbsp;</p>
@@ -1313,8 +1372,9 @@ mappings <b><span style='color:#333399'>&lt;F8&gt;</span></b>  and <b><span styl
 
 <p class=MsoNormal>&nbsp;</p>
 
-<p class=syntax><span style='color:red'>g:VGdelHlpmap</span><span style='color:green'>key mapping to VimgrepHelpDel.  Default value </span><span style='color:
-#333399'>‘&lt;F6&gt;’</span><span style='color:green'>.</span></p>
+<p class=syntax><span style='color:red'>g:VGdelHlpmap</span><span style='color:green'>key mapping to
+VimgrepHelpDel.  Default value </span><span
+style='color:#333399'>‘&lt;F6&gt;’</span><span style='color:green'>.</span></p>
 
 <p class=syntax><span style='color:red'>g:VGdelEdtmap</span><span style='color:green'>key mapping to
 VimgrepEditDel.  Default value </span><span
@@ -1364,11 +1424,11 @@ meaning more messages.  There are 3
 levels from normal to error.  Normal
 messages are operational information, these are level 0.  Warning messages warn of inability to comply
 with requests, these are level 1.  Error
-messages are operations that cannot be or were not performed for various reasons,
-these are level 2.  This variable is set
-to 1 by default, warnings and errors. 
-You may set it to whatever you wish for all sessions in your vimrc or
-set it on the fly with the <span style='color:maroon'>VGMSGLVL</span> command</p>
+messages are operations that cannot be or were not performed for various
+reasons, these are level 2.  This
+variable is set to 1 by default, warnings and errors.  You may set it to whatever you wish for all sessions in your vimrc
+or set it on the fly with the <span style='color:maroon'>VGMSGLVL</span>
+command</p>
 
 <p class=DispTxt>&nbsp;</p>
 
@@ -1386,19 +1446,16 @@ eliminate this pause by setting this variable to 0.</p>
 
 <p class=DispTxt>Besides <b><span
 style='color:#333399'>vimgrep.vim</span></b>, the package consists of
-documents, a utility file, an extra buffer source/execution file, gvim icon
-files, and a test suit file.  These are
-all packaged in zip format into a <b><span
+documents, gvim icon files, and a test suit file.  These are all packaged in zip format into a <b><span
+style='color:#333399'>.vim</span></b>|<b><span
 style='color:#333399'>vimfiles directory hierarchy</span></b>.  In the <b><span
 style='color:#333399'>plugin</span></b><span style='color:#333399'> <b>directory</b></span>
-are <b><span style='color:#333399'>vimgrep.vim</span></b>,
-<b><span style='color:#333399'>vsutil.vim</span></b>,
-and <b><span style='color:#333399'>curBuf.vim</span></b>.  The <b><span style='color:#333399'>doc
+is <b><span style='color:#333399'>vimgrep.vim</span></b>.  The <b><span style='color:#333399'>doc
 directory</span></b> contains files in various formats for <b><span
-style='color:#333399'>vimgrep.vim</span></b> and <b><span style='color:#333399'>vsutil.vim</span></b>.  The <b><span style='color:#333399'>bitmaps directory</span></b>
-has the <b><span style='color:#333399'>xpm</span></b> and <b><span
-style='color:#333399'>bmp</span></b> files for <b><span style='color:#333399'>vimgrep.vim</span></b>
-and <b><span style='color:#333399'>curBuf.vim</span></b>.  In <b><span style='color:#333399'>test</span></b>,
+style='color:#333399'>vimgrep.vim</span></b>. 
+The <b><span style='color:#333399'>bitmaps directory</span></b> has the <b><span
+style='color:#333399'>xpm</span></b> and <b><span style='color:#333399'>bmp</span></b>
+files for <b><span style='color:#333399'>vimgrep.vim</span></b>.  In <b><span style='color:#333399'>test</span></b>,
 the <b><span style='color:#333399'>testVG.vim</span></b> file has commands for
 running tests on <b><span style='color:maroon'>Vimgrep</span></b>
 functionality, these also serve as examples of usage.</p>

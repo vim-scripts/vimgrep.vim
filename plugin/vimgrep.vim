@@ -1,8 +1,17 @@
 " Language:    vim script
 " Maintainer:  Dave Silvia <dsilvia@mchsi.com>
-" Date:        8/19/2004
+" Date:        9/1/2004
 "
 
+
+" Version 3.2
+"   Added:
+"     -  VimfindEdit/EditVimfind()
+"        operates the same as
+"        VimgrepEdit/EditVimgrep()
+"        VimgrepEditDel functionality
+"        also applies.
+"
 " Version 3.1
 "   Enhanced:
 "    -  Rewrote s:vimGrep() for
@@ -1120,6 +1129,51 @@ function! ListVimfind(file,fpat,...)
 	map <buffer> o :execute 'edit '.getline('.')<CR>
 	setlocal readonly
 	setlocal nomodifiable
+endfunction
+
+"rqrd args: file fpat
+" opt args: MC doSubs mpat
+"Help:command  VimfindEdit file fpat[ -M][ -d][ -m <pat>]
+command! -nargs=* VimfindEdit call EditVimfind(<f-args>)
+
+"Help:function EditVimfind('file','fpat'[,'-M'][,'-d'][,'-m','<pat>'])
+function! EditVimfind(file,fpat,...)
+	if !exists("g:VGEdtBufs")
+		let g:VGEdtBufs=':'
+	endif
+	SETOPTS
+	let editFiles=Vimfind(a:file,a:fpat)
+	let g:editListVimgrep=''
+	let thisFile=StrListTok(editFiles,'g:editListVimgrep')
+	if thisFile == ''
+		unlet! g:editListVimgrep
+		return
+	endif
+	if !s:MC | let mc='ignorecase' | else | let mc='noignorecase' | endif
+	let tailCmd=
+		\'setlocal '.mc.' | '.
+		\"let g:VGEdtBufs=g:VGEdtBufs.b:bufNo.':'"
+	let startName=thisFile
+	while thisFile != ''
+		if !buflisted(thisFile)
+			let itsPath=fnamemodify(thisFile,":p:h")
+			let itsName=fnamemodify(thisFile,":t")
+			let itsSwap=itsPath.'/.'.itsName.'.swp'
+			let itsSwap=glob(itsSwap)
+			if itsSwap == ''
+				let editCmd="edit ".thisFile." | ".tailCmd
+			else
+				let editCmd="view ".thisFile." | setlocal nomodifiable | ".tailCmd
+			endif
+			execute "silent! ".editCmd
+		endif
+		let thisFile=StrListTok('','g:editListVimgrep')
+	endwhile
+	let startBuf=bufnr(startName)
+	let goHome='silent b'.startBuf
+	execute goHome
+	file
+	unlet! g:editListVimgrep
 endfunction
 
 "rqrd args: srchpat file
