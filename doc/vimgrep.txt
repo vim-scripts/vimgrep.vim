@@ -1,0 +1,395 @@
+Vimgrep
+Page 1 of 8
+
+
+
+ The  plugin  vimgrep.vim implements grep type searching using native  vim
+ search  capabilities only.  It allows the user to have  wholly  contained
+ file  searching  within  Vim  and no need of outside  grep  style  search
+ programs.  The implementation uses commands where appropriate for ease of
+ use  and/or a function interface for scripting and non-command line  echo
+ return.
+
+
+
+ The  nominal command and function of vimgrep.vim are both named  Vimgrep.
+ They have identical arguments, excepting that the command mechanism wraps
+ its  arguments  for functions in quotes, so allowances in usage  must  be
+ made for this.  It is perhaps easier to just get used to one or the other
+ and  use it exclusively.  The more desirable of the two would then be the
+ function.   For command line use when desiring display, just remember  to
+ use echo instead of call.
+ The  syntax  for the function will be given here, command syntax  is  the
+ same except as noted above.
+                                     
+       call Vimgrep(srchpat,file[,MC,FNonly,terse,doSubs,fpat,mpat])
+                                     
+ Only  the  first 2 arguments are required, the balance are optional,  but
+ positionally required (i.e., to specify terse, you must also  specify  MC
+ and FNonly).  Let’s take the arguments one by one.
+      
+      srchpat      string or regex to search for in file(s).
+      file              file(s) to search.  Can be a single file, a
+                   comma separated list, a newline separated list,
+                   regex, or any combination.
+      MC                0 or 1 as Boolean for case matching.
+                   Default is 0, that is, case matching is not
+                   required (i.e., ignored).
+      FNonly       0 or 1 Boolean.  1 returns names of files
+                   containing matches only.
+      terse             0 or 1 Boolean.  When 1 do not return
+                   messages that identify files that are
+                   directories, files that are empty, files that are
+                   non text, and files in which the pattern was not
+                   found.
+      doSubs       0 or 1 Boolean.  1 == search in subdirectories
+                   also.
+      fpat              specific file patterns to search for, e.g.
+                   ‘\w*\.vim\>’ or ‘\w*\.txt\>’.  Use ‘’ or “” for
+                   positional placeholder.
+      mpat              specific file patterns to skip, e.g.
+                   ‘syntax\|lang’.
+      
+      Returns      line number and line text where srchpat was found
+                   or messages that identify result on specific
+                   file, unless terse is specified, then only
+                   successful searches are returned.  If FNonly is
+                   specified, only the names of files successfully
+                   searched are returned.
+      
+ You can capture the output in various ways.  The most common would be  to
+ assign  the function return within a script to a variable.  Alternatively
+ when  echo-ing  the  function or using the Vimgrep command,  redir  to  a
+ register or file could also be used, just don’t forget to redir END  when
+ done.
+ These  arguments are standard in each command/function in vimgrep.vim  as
+ and when they apply, and in the stated order to avoid confusion.
+ 
+
+ 
+ There is a naming convention used in vimgrep.vim that generally makes  it
+ easier to tell a command from a function.  Functions begin with alpha and
+ end with Vimgrep, whereas commands begin with Vimgrep and end with alpha.
+ The following is a listing of all of the public commands/functions.
+ 
+ 
+    Command            Function        Reqd args     Optnl args
+    Vimgrep           Vimgrep()            2             6
+  VimgrepToBuf      ToBufVimgrep()         2             6
+  VimgrepEdit       EditVimgrep()          2             6
+ VimgrepEditDel                                           
+  VimgrepBufs       BufsVimgrep()          1             1
+VimgrepBufsToBuf  BufsToBufVimgrep()       1             1
+  VimgrepHelp       HelpVimgrep()          1             1
+ VimgrepHelpDel                                           
+ 
+ 
+ As stated before, arguments are standard, so we’ll only review where they
+ differ.
+                                     
+                              VimgrepEditDel
+                                     
+ This    is   a   command   that   deletes   the   buffers   created    by
+ VimgrepEdit/EditVimgrep().  It takes no arguments.
+                                     
+                              VimgrepHelpDel
+                                     
+ This    is   a   command   that   deletes   the   buffers   created    by
+ VimgrepHelp/HelpVimgrep().  It takes no arguments.
+                                     
+                      call HelpVimgrep(srchpat[,MC])
+                                     
+ VimgrepHelp/HelpVimgrep() acts on files in runtimepath  doc  directories,
+ so  there is no file argument.  Similarly, since the files/locations  are
+ already defined, FNonly, terse, doSubs, fpat, and mpat do no apply.
+                                     
+                      call BufsVimgrep(srchpat[,MC])
+                                     
+ VimgrepBufs/BufsVimgrep() address open buffers, so there is no need for a
+ file argument.  Likewise, FNonly, terse, doSubs, fpat, and mpat again are
+ not applicable.
+                                     
+                    call BufsToBufVimgrep(srchpat[,MC])
+                                     
+ VimgrepBufsToBuf/BufsToBufVimgrep() address open buffers in the same  way
+ as  VimgrepBufs/BufsVimgrep().  The difference is that the output goes to
+ a  buffer for perusal instead of being displayed on the command  line  or
+ being returned as a argument.
+ 
+
+ 
+ So,   to   recap,  we  have  2  commands  that  take  no   arguments,   3
+ commands/functions  that  take  2  required  arguments  and  6   optional
+ (positional)  arguments,  and 3 commands  that  take  1  required  and  1
+ optional argument.
+ Following is a brief description of the use of each command/function:
+ 
+      Vimgrep
+      Vimgrep()    Search files for instances of a string or regular
+                   expression pattern.
+      
+      Example:
+          echo Vimgrep(‘todo’,$VIMRUNTIME.’/indent/*.vim’,0,0,1)
+      
+      Searches:           $VIMRUNTIME/indent/*.vim files, ignoring
+                          case (MC=0), not returning just file names
+                          (FNonly=0), and not returning messages on
+                          non-matches (terse=1), for instances of
+                          ‘todo’ and echoing the return to the
+                          command line.
+ 
+Copy'n'paste   Note that quote characters may not paste properly
+echo Vimgrep(‘todo’,$VIMRUNTIME.’/indent/*.vim’,0,0,1)
+      
+      Example:
+                                let traps=
+\Vimgrep(‘\<try\>\|\<catch\>\|\<endtry\>’,$VIMRUNTIME,1,0,1,1,’\w*\.vim\>’,
+                              ’syntax\|lang’)
+      
+      Searches:           $VIMRUNTIME, matching case (MC=1), not
+                          returning just file names (FNonly=0), not
+                          returning messages on non-matches
+                          (terse=1),  and searching in subdirectories
+                          (doSubs=1) in *.vim files but not files
+                          whose paths contain ‘syntax’ or ‘lang’, for
+                          instances of the complete words ‘try’,
+                          ‘catch’, and ‘endtry’.  Results are
+                          assigned to the variable traps.
+ 
+Copy'n'paste   Note that quote characters may not paste properly
+let
+traps=Vimgrep(‘\<try\>\|\<catch\>\|\<endtry\>’,$VIMRUNTIME,1,0,1,1,’\w*\.vi
+m\>’,’syntax\|lang’)
+      
+ 
+ Note  the difference here between searching a directory for ‘*.vim’ files
+ (file  argument) and recursing a directory hierarchy and matching a  file
+ pattern  ‘\w*\.vim\>’ (fpat argument).  The former expands to a  list  of
+ files  in  a  directory,  while  the latter  sorts  through  a  hierarchy
+ comparing a pattern to each file.
+ 
+      Example:
+             let @z=Vimgrep(‘{func-name}’,’../ftplugin/*.vim’)
+      
+      Searches:           the .vim files in the ftplugin parallel
+                          directory to the current buffer file’s
+                          directory for the {func-name} and places
+                          the result in the z register.
+
+      
+      Example:
+ Vimgrep ^\s*\<fu\%[nction]\>\%[!]\s\+\p*{func-name} &runtimepath 0 0 1 1
+        \w*\.vim\> bitmaps\|doc\|keymap\|lang\|syntax\|tools\|tutor
+      
+      Searches:           the .vim files in the &runtimepath option
+                          variable’s directories (minus some unlikely
+                          locations) for the function definition of
+                          {func-name} and echoes it to the command
+                          line.
+ 
+ This could be a useful private command, I use it!
+ 
+Copy'n'paste
+command! -nargs=1 FindFunc Vimgrep ^\s*\<fu\%[nction]\>\%[!]\s\+\p*<args>
+&runtimepath 0 0 1 1 \w*\.vim\>
+bitmaps\|doc\|keymap\|lang\|syntax\|tools\|tutor
+command! -nargs=1 FindCmd Vimgrep ^\s*\<com\%[mand]\>\%[!]\s\+\p*<args>
+&runtimepath 0 0 1 1 \w*\.vim\>
+bitmaps\|doc\|keymap\|lang\|syntax\|tools\|tutor
+ 
+ The  2  above  lines  can  be cut and pasted (be  sure  each  is  as  one
+ continuous line).  Don’t mind the red syntax coloring if you paste into a
+ vim  filetype (it will be at \.vim\>), this is a syntax anomaly,  there’s
+ nothing wrong with the command lines.  Using
+                                     
+                              FindFunc indent
+ 
+ will find all the indent functions in the runtime path.  While
+                                     
+                              FindCmd tohtml
+ 
+ will find the TOhtml command in vim63\plugin\tohtml.vim.
+ 
+ You will also find this to be valid:
+ 
+                              Vimgrep endif %
+ 
+ Which,  on the face of it, doesn’t seem useful, since you can search  the
+ current  file from the command line.  It is implemented for two  reasons:
+ 1)  completeness,   2)  to  provide  a  reference  point  for  searching.
+ Consider:
+ 
+                Vimgrep endif % 0 0 0 0 \w*\.\(vim\|txt\)\>
+ 
+ This  searches for the pattern in all .vim and .txt files in the  current
+ buffer’s  directory.  Empty quotes may also be used as well  as  dot  (an
+ unquoted period for the command, a quoted one for the function).
+ 
+      VimgrepToBuf
+      ToBufVimgrep()    Search files for instances of a string or
+                   regular expression pattern and open the result in
+                   a buffer.
+ 
+ Places  result  from  Vimgrep  into a buffer  for  ease  of  examination.
+ Browser pops up in gvim to allow naming of the result file.  In vim,  the
+ name  of  the result file is requested on the command line.  Location  of
+ result  file  defaults  to the current buffer file’s  directory.   Search
+ pattern is highlighted.
+ 
+      VimgrepEdit
+      EditVimgrep()Search files for instances of a string or regular
+                   expression pattern and open the files containing
+                   successful matches in buffers.
+ 
+ Open  files that successfully match the specified pattern in buffers  for
+ ease  of  examination and or editing.  Search pattern is  highlighted  in
+ each buffer.
+ 
+      VimgrepEditDel    Delete buffers opened by
+                   VimgrepEdit/EditVimgrep().
+ 
+      VimgrepBufs
+      BufsVimgrep()Search listed buffers for instances of a string
+                   or regular expression pattern.  Command displays
+                   results on the command line, function returns
+                   them.
+ 
+      VimgrepBufsToBuf
+      BufsToBufVimgrep()Search listed buffers for instances of a
+                   string or regular expression pattern.  Result is
+                   displayed in a new buffer.
+ 
+ As with VimgrepToBuf/ToBufVimgrep(), result from Vimgrep is placed into a
+ buffer  for ease of examination.  Browser pops up in gvim to allow naming
+ of  the result file.  In vim, the name of the result file is requested on
+ the command line.  Location of result file defaults to the current buffer
+ file’s directory.  Search pattern is highlighted.
+ 
+      VimgrepHelp
+      HelpVimgrep()Search help (doc) files for instances of a string
+                   or regular expression pattern and open the files
+                   containing successful matches in buffers in help
+                   file format.
+ 
+ Open  help files that successfully match the specified pattern in buffers
+ for ease of examination.  Options are set to provide help file format and
+ operation.  Search pattern is highlighted in each buffer.
+ 
+                VimgrepHelpDel    Delete buffers opened by
+                        VimgrepHelp/HelpVimgrep().
+ 
+
+
+ There  are also global variables that may have values specified to modify
+ the  behavior  of Vimgrep.  You can set default arguments,  default  file
+ creation  location, default file search locations, and default help  file
+ (doc)  locations.  You can also change the default key mapping  and  gvim
+ toolbar  icons for deletion of help/edit buffers.  The naming  convention
+ for vimgrep.vim global variables is that they all begin with VG.
+ 
+
+                                     
+                                     
+                    Optional Argument Default Variables
+                                     
+      g:VGMCDflt          match case argument.  Default value 0.
+      g:VGFNonlyDflt      return file names only argument.  Default
+                          value 0.
+      g:VGterseDflt       do not return messages argument.  Default
+                          value 0.
+      g:VGdoSubsDflt      recurse subdirectories argument.  Default
+                          value 0.
+      g:VGfpatDflt        file pattern argument.  Default value ‘’.
+      g:VGmpatDflt        minus file pattern argument.  Default value
+                          ‘’.
+ 
+                    Creation Directory Default Variable
+                                     
+      g:VGCreatDir        file creation directory default value.
+                          Default value ‘~’.  Currently only used to
+                          create dummy file when Vimgrep is invoked
+                          in an empty vim/gvim session.
+ 
+           Not Qualified Path File Directories Default Variable
+                                     
+      g:VGDirs            search directories for file argument that
+                          is not a qualified path.  Default is ‘~’,
+                          &runtimepath, getcwd().  When used, it is
+                          appended to expand(“%:p:h”) and directories
+                          are search in the order specified.
+ 
+           Help (.txt) Files Parent Directories Default Variable
+                                     
+      g:VGHlpDirs         search directories for help files ‘doc’
+                          directory.  Default is ‘~’, &runtimepath.
+                          When used, ‘/doc/*.txt’ is appended to each
+                          element in the list and expanded.
+ 
+
+ 
+ vimgrep.vim adds key mappings and menu selections with tool bar icons for
+ the  commands  VimgrepHelpDel  and VimgrepEditDel  to  make  these  tasks
+ simpler.   The menu selections are placed under the ‘User Specific’  pull
+ down  menu,  in  a submenu named ‘Vimgrep Buffers’ with the  two  entries
+ ‘Delete Help Buffers  <F6>’ and ‘Delete Edit Buffers  <F7>’.  If you also
+ have  curBuf.vim, its entries are also in the pull down ‘User  Specific’,
+ using key mappings <F8>  and <F9>.
+ 
+       Key Mappings and Tool Bar Icons for Delete Help/Edit Buffers
+                                     
+      g: VGdelHlpmap      key mapping to VimgrepHelpDel.  Default
+                          value ‘<F6>’.
+      g: VGdelEdtmap      key mapping to VimgrepEditDel.  Default
+                          value ‘<F7>’.
+      g:VGdelHlpIco       Tool Bar icon for VimgrepHelpDel.  Default
+                          value tb_close.
+      g:VGdelEdtIco       Tool Bar icon for VimgrepEditDel.  Default
+                          value tb_close.
+
+ The  icon  tb_close is in the standard vim63 distribution as an X  pixmap
+ file (.xpm).  vimgrep_vim.zip includes the .bmp version as well.
+ 
+
+ 
+ 
+                               Miscellaneous
+                                     
+      g: VGMSGLEVEL       Level of messages displayed by vimgrep.vim
+                          functions.  This is a high water mark
+                          variable, that is, it sets the highest
+                          amount of messages with lower numbers
+                          meaning more messages.  There are 3 levels
+                          from normal to error.  Normal messages are
+                          operational information, these are level 0.
+                          Warning messages warn of inability to
+                          comply with requests, these are level 1.
+                          Error messages are operations that cannot
+                          be or were not performed for various
+                          reasons, these are level 2.  This variable
+                          is set to 1 by default, warnings and
+                          errors.  You may set it to whatever you
+                          wish for all sessions in your vimrc or set
+                          it on the fly with the VGMSGLVL command
+ 
+                               VGMSGLVL lvl
+ 
+      g: VGMSGPAUSE       By default, vimgrep.vim functions pause
+                          after issuing error messages to be sure
+                          they are seen, you can eliminate this pause
+                          by setting this variable to 0.
+
+
+ 
+ Besides  vimgrep.vim, the package consists of documents, a utility  file,
+ an  extra buffer source/execution file, gvim icon files, and a test  suit
+ file.   These  are  all packaged in zip format into a vimfiles  directory
+ hierarchy.   In  the  plugin directory are vimgrep.vim,  vsutil.vim,  and
+ curBuf.vim.   The  doc  directory contains files in various  formats  for
+ vimgrep.vim  and vsutil.vim.  The bitmaps directory has the xpm  and  bmp
+ files  for vimgrep.vim and curBuf.vim.  In test, the testVG.vim file  has
+ commands for running tests on Vimgrep functionality, these also serve  as
+ examples of usage.
+ 
+
+
+
